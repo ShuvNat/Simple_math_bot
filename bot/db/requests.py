@@ -92,3 +92,25 @@ async def get_interval_results(
     result = await session.execute(stmt)
     task_records = result.fetchone()
     return task_records
+
+
+async def get_all_stats(
+    session: AsyncSession,
+):
+    stmt = (
+        select(
+            User.first_name,
+            User.last_name,
+            func.sum(Tasks.multi),
+            func.sum(Tasks.div),
+            func.sum(Tasks.all_ops),
+            func.sum(Tasks.total)
+        )
+        .join(Tasks, User.telegram_id == Tasks.user_id)
+        .group_by(User.telegram_id)
+        .order_by(User.last_name, User.first_name)
+    )
+
+    result = await session.execute(stmt)
+    summary = result.fetchall()
+    return summary
